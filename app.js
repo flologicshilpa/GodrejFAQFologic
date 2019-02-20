@@ -56,7 +56,9 @@ var bot = new builder.UniversalBot(connector, [
         session.beginDialog('FAQ');
     }
 ])
-bot.set('storage', cosmosStorage);         // new builder.MemoryBotStorage() Register in-memory state storage
+bot.set('storage', cosmosStorage);     
+bot.set('persistUserData', true);
+ bot.set('persistConversationData', true);    // new builder.MemoryBotStorage() Register in-memory state storage
 server.post('/api/messages', connector.listen());
 
 bot.on("event",function(event) {
@@ -90,8 +92,18 @@ bot.dialog('FAQ', [
         const question = session.message.text;
         if(question == 'hi')
         {
-        session.send("Hello! Wellcome to FAQ Bot");
+            var name=session.message.user.name;
+            var id=session.message.user.id;
+            var jsonData = JSON.stringify(session.message);
+            var jsonParse = JSON.parse(jsonData);
 
+        session.conversationData.botID=jsonParse.address.bot.id;
+        session.conversationData.botName=jsonParse.address.bot.name;
+        session.conversationData.userName=name;
+        session.conversationData.userID=id;
+        session.conversationData.conversationID=jsonParse.address.conversation.id;
+
+        session.send("Hello! Wellcome to FAQ Bot");
         BotID=session.conversationData.botID;
         BotName=session.conversationData.botName;
         UserName=session.conversationData.userName;

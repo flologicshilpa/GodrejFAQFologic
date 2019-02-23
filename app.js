@@ -103,7 +103,7 @@ bot.dialog('FAQ', [
         session.conversationData.userID=id;
         session.conversationData.conversationID=jsonParse.address.conversation.id;
 
-        session.send("Hello! Wellcome to FAQ Bot");
+        session.send("Hello! Welcome to FAQ Bot");
         BotID=session.conversationData.botID;
         BotName=session.conversationData.botName;
         UserName=session.conversationData.userName;
@@ -122,14 +122,67 @@ bot.dialog('FAQ', [
             const response = JSON.parse(body);
 
             if (response.answers.length > 0) {
+
+                //////////////////
+
                 session.dialogData.qnaMakerResult = qnaMakerResult = response;
                 var questionOptions = [];
                 qnaMakerResult.answers.forEach(function (qna) {
-                    if (qna.score > 50) {
+                    if (qna.score > 90) {
                         questionOptions.push(qna.questions[0]);
                     }
                 });
-                if (questionOptions.length > 1) {
+                if(questionOptions.length ==1)
+                {
+                    let msg = new builder.Message(session)
+                    .addAttachment({
+                        contentType: "application/vnd.microsoft.card.adaptive",
+                        content: {
+                            type: "AdaptiveCard",
+                            body: [
+                                {
+                                    "type": "TextBlock",
+                                    "text": question,
+                                    "size": "large",
+                                    "weight": "bolder",
+                                    "color": "dark",
+                                    "wrap": true
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "text": response.answers[0].answer,
+                                    "size": "large",
+                                    "weight": "regular",
+                                    "color": "dark",
+                                    "wrap": true
+                                }
+                            ]
+                        }
+                    });
+                session.send(msg);
+
+                BotID=session.conversationData.botID;
+                BotName=session.conversationData.botName;
+                UserName=session.conversationData.userName;
+                UserId=session.conversationData.userID;
+                ConversationId=session.conversationData.conversationID;
+                createFamilyItem(BotID,BotName,ConversationId,UserId,UserName,session.message.text,"Question Answered");                    
+                }
+                else
+                {
+                    var questionOptionsList = [];
+                    qnaMakerResult.answers.forEach(function (qna) {
+                        if (qna.score > 70) {
+                            questionOptionsList.push(qna.questions[0]);
+                        }
+                    });
+
+                    var promptOptions = { listStyle: builder.ListStyle.button };
+                    builder.Prompts.choice(session, "Multiple topics are found in response to your query. Select the relevant topic from the following:", questionOptionsList, promptOptions);
+                    session.endDialog();
+                }
+
+                /*if (questionOptions.length > 1) {
                     var promptOptions = { listStyle: builder.ListStyle.button };
                     builder.Prompts.choice(session, "Multiple topics are found in response to your query. Select the relevant topic from the following:", questionOptions, promptOptions);
                 }
@@ -170,7 +223,8 @@ bot.dialog('FAQ', [
                              
                   // session.send("botid=%s botName=%s UserName=%s UserId=%s ConversationId=%s Date=%s DateTime=%s",BotID,BotName,UserName,UserId,ConversationId,date,datetime);
                     createFamilyItem(BotID,BotName,ConversationId,UserId,UserName,session.message.text,"Question Answered");
-                }
+                }*/
+                ///////////
             }
             else {
                 session.send('No data found for given query.Narrow your search.');
@@ -180,7 +234,8 @@ bot.dialog('FAQ', [
         })
         }
     },
-    function (session, results) {
+    /*function (session, results) {
+        session.endDialog();
         var qnaMakerResult = session.dialogData.qnaMakerResult;
         var filteredResult = qnaMakerResult.answers.filter(function (qna) { return qna.questions[0] === results.response.entity; });
         var selectedQnA = filteredResult[0];
@@ -220,7 +275,7 @@ bot.dialog('FAQ', [
                   // session.send("botid=%s botName=%s UserName=%s UserId=%s ConversationId=%s Date=%s DateTime=%s",BotID,BotName,UserName,UserId,ConversationId,date,datetime);
                     createFamilyItem(BotID,BotName,ConversationId,UserId,UserName,selectedQnA.questions[0],"Question Answered");
        
-    },
+    },*/
 ]).triggerAction({
     matches: 'FAQ'
 })
